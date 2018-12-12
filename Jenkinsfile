@@ -4,7 +4,10 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '5'))
   }
   parameters {
+    //https://github.com/Kornil/simple-react-app.git
     string(name: 'GIT_IMAGE_REPO_NAME', defaultValue: 'mat-orz/basic-react', description: '')
+    string(name: 'GIT_REACT_APP_PROJECT_NAME', defaultValue: 'simple-react-app', description: '')
+    string(name: 'GIT_REACT_APP_ROOT', defaultValue: 'https://github.com/Kornil', description: '')
     string(name: 'DOCKER_IMAGE_REPO_NAME', defaultValue: 'matorz/basic-react', description: '')
     string(name: 'LATEST_BUILD_TAG', defaultValue: 'build-latest', description: '')
     string(name: 'DOCKERFILE_REACT', defaultValue: 'Dockerfile-react', description: '')
@@ -15,28 +18,76 @@ pipeline {
     booleanParam(name: 'DOCKER_STACK_RM', defaultValue: true, description: 'Remove previous stack.  This is required if you have updated any secrets or configs as these cannot be updated. ')
   }
   stages {
+/*
+    stage('clone app repo'){
+      environment {
+        GIT_REACT_APP_URL = "${params.GIT_REACT_APP_ROOT}/${params.GIT_REACT_APP_PROJECT_NAME}.git"
+      }
+      steps{
+        dir("$JENKINS_HOME/workspace/$BUILD_TAG"){
+         sh "hostname"
+         sh "git clone $GIT_REACT_APP_URL"
+         sh "pwd"
+         sh "ls -lathr"      
+        }
+      }
+    }
+*/
+
+    stage('project mkdir'){
+      
+      steps{
+          sh "mkdir $JENKINS_HOME/workspace/$BUILD_TAG/${params.GIT_REACT_APP_PROJECT_NAME}"
+       
+      }
+    }
+
+    stage('clone app repo'){
+      agent {
+          docker {
+             image 'node:latest'
+             customWorkspace "$JENKINS_HOME/workspace/$BUILD_TAG/${params.GIT_REACT_APP_PROJECT_NAME}"
+          }
+      }
+      environment {
+        GIT_REACT_APP_URL = "${params.GIT_REACT_APP_ROOT}/${params.GIT_REACT_APP_PROJECT_NAME}.git"
+      }
+      steps{
+         sh "hostname"
+         sh "git clone $GIT_REACT_APP_URL"
+         sh "pwd"
+         sh "ls -lathr"  
+         
+      }
+    }
+
 
     stage('npm install'){
       agent {
           docker {
              image 'node:latest'
-             customWorkspace "$JENKINS_HOME/workspace/$BUILD_TAG"
+             customWorkspace "$JENKINS_HOME/workspace/$BUILD_TAG/${params.GIT_REACT_APP_PROJECT_NAME}"
           }
       }
       steps{
+         sh "hostname"
          sh "pwd"
          sh "npm install"
+         
       }
     }
+    
     stage('npm test'){
       agent {
           docker {
              image 'node:latest'
-             customWorkspace "$JENKINS_HOME/workspace/$BUILD_TAG"
+             customWorkspace "$JENKINS_HOME/workspace/$BUILD_TAG/${params.GIT_REACT_APP_PROJECT_NAME}"
           }
       }
       steps{
+         sh "hostname"
          sh "pwd"
+         sh "ls -lathr"
          sh "npm test -- --coverage"
       }
     }
@@ -44,7 +95,7 @@ pipeline {
       agent {
           docker {
              image 'node:latest'
-             customWorkspace "$JENKINS_HOME/workspace/$BUILD_TAG"
+             customWorkspace "$JENKINS_HOME/workspace/$BUILD_TAG/${params.GIT_REACT_APP_PROJECT_NAME}"
           }
       }
       steps{
