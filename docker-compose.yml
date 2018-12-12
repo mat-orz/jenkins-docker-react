@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  react_nginx:
+    image: react_nginx
+    ports:
+      - 8888:80
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == devops2
+
