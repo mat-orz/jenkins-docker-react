@@ -16,6 +16,7 @@ pipeline {
     string(name: 'DOCKER_IMAGE_REPO_NAME', defaultValue: 'matorz/basic-react', description: '')
     string(name: 'LATEST_BUILD_TAG', defaultValue: 'build-latest', description: '')
     string(name: 'DOCKER_STACK_NAME', defaultValue: 'react_stack', description: '')
+    string(name: 'DOCKER_COMPOSE_FILENAME', defaultValue: 'docker-compose.yml', description: '')
     booleanParam(name: 'NPM_RUN_TEST', defaultValue: true, description: '')
     booleanParam(name: 'PUSH_DOCKER_IMAGES', defaultValue: false, description: '')
     booleanParam(name: 'DOCKER_STACK_RM', defaultValue: true, description: 'Remove previous stack.  This is required if you have updated any secrets or configs as these cannot be updated. ')
