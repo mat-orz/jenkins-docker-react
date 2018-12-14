@@ -4,26 +4,24 @@ pipeline {
   agent {
         docker {
             image 'node:latest' 
-            //args  '-v $JENKINS_HOME/workspace/$BUILD_TAG:/project -u root:root'
         }
   }
   options {
     buildDiscarder(logRotator(numToKeepStr: '5'))
   }
   parameters {
-    //https://github.com/Kornil/simple-react-app.git
     string(name: 'GIT_IMAGE_REPO_NAME', defaultValue: 'mat-orz/basic-react', description: '')
     string(name: 'GIT_REACT_APP_PROJECT_NAME', defaultValue: 'simple-react-app', description: '')
     string(name: 'GIT_REACT_APP_ROOT', defaultValue: 'https://github.com/Kornil', description: '')
     string(name: 'DOCKER_IMAGE_REPO_NAME', defaultValue: 'matorz/basic-react', description: '')
     string(name: 'LATEST_BUILD_TAG', defaultValue: 'build-latest', description: '')
-    string(name: 'DOCKER_COMPOSE_FILENAME', defaultValue: 'docker-compose.yml', description: '')
     string(name: 'DOCKER_STACK_NAME', defaultValue: 'react_stack', description: '')
     booleanParam(name: 'NPM_RUN_TEST', defaultValue: true, description: '')
     booleanParam(name: 'PUSH_DOCKER_IMAGES', defaultValue: false, description: '')
     booleanParam(name: 'DOCKER_STACK_RM', defaultValue: true, description: 'Remove previous stack.  This is required if you have updated any secrets or configs as these cannot be updated. ')
   }
   stages {
+
 
 
 
@@ -98,11 +96,21 @@ pipeline {
     stage('npm build'){
 
       steps{
-         dir("$JENKINS_HOME/workspace/$BUILD_TAG"){
+         dir("$JENKINS_HOME/workspace/$BUILD_TAG/${params.GIT_REACT_APP_PROJECT_NAME}"){
             sh "hostname"
             sh "pwd"
             sh "ls -lathr"
             sh "npm run build"
+         }
+      }
+
+    }
+
+     stage('move build dir to workspace root'){
+
+      steps{
+         dir("$JENKINS_HOME/workspace/$BUILD_TAG/${params.GIT_REACT_APP_PROJECT_NAME}"){
+            sh "mv build/ .."
          }
       }
 
@@ -139,8 +147,8 @@ pipeline {
       }
       steps{
           sh "docker login -u \$(cat /run/secrets/DOCKER_LOGIN) -p \$(cat /run/secrets/DOCKER_PASSWORD)"
-        //sh "docker push $BUILD_IMAGE_REPO_TAG"
-        //sh "docker push ${params.DOCKER_IMAGE_REPO_NAME}:$COMMIT_TAG"
+        sh "docker push $BUILD_IMAGE_REPO_TAG"
+        sh "docker push ${params.DOCKER_IMAGE_REPO_NAME}:$COMMIT_TAG"
         //sh "docker push ${params.DOCKER_IMAGE_REPO_NAME}:${readJSON(file: 'package.json').version}"
         //sh "docker push ${params.DOCKER_IMAGE_REPO_NAME}:${params.LATEST_BUILD_TAG}"
         //sh "docker push ${params.DOCKER_IMAGE_REPO_NAME}:$BRANCH_NAME-latest"
@@ -166,9 +174,8 @@ pipeline {
   }
   post {
     always {
-      sh 'ls -lathr'
-      sh 'rm -rf simple-react-app'
-      sh 'ls -lathr'
+      sh 'echo "whatever"'
+      
     }
   }
 }
